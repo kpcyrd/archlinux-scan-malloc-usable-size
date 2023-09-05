@@ -1,0 +1,18 @@
+[package]
+name = "archlinux-scan-malloc-usable-size"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+env_logger = "0.10.0"
+log = "0.4.20"
+memfile = "0.2.1"
+num_cpus = "1.16.0"
+rust-lzma = "0.6.0"
+tar = "0.4.40"
+threadpool = "1.8.1"
+walkdir = "2.4.0"
+zstd = "0.12.4"
