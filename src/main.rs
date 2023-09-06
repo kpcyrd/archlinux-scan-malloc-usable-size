@@ -1,9 +1,10 @@
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use env_logger::Env;
 use log::error;
 use memfile::MemFile;
 use std::env;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
 use std::io::ErrorKind;
 use std::path::Path;
@@ -27,11 +28,10 @@ fn check_elf_file<R: Read>(mut f: R) -> Result<bool> {
         return Ok(false);
     }
 
-    let mut buf = elf_magic.to_vec();
-    f.read_to_end(&mut buf).context("Failed to read elf from archive")?;
-
     let mut mem = MemFile::create_default("")?;
-    mem.write_all(&buf)?;
+    mem.write_all(&elf_magic)?;
+    io::copy(&mut f, &mut mem).context("Failed to read elf from archive")?;
+    mem.rewind()?;
 
     let output = Command::new("readelf")
         .arg("-Ws")
@@ -71,8 +71,12 @@ fn check_tar<R: Read>(r: R) -> Result<bool> {
 }
 
 fn check_pkg(path: &Path) -> Result<bool> {
-    let Some(file_name) = path.file_name() else { return Ok(false) };
-    let Some(file_name) = file_name.to_str() else { return Ok(false) };
+    let Some(file_name) = path.file_name() else {
+        return Ok(false);
+    };
+    let Some(file_name) = file_name.to_str() else {
+        return Ok(false);
+    };
 
     if file_name.ends_with(".pkg.tar.zst") {
         let f = File::open(path)?;
